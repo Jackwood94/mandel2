@@ -6,7 +6,78 @@ window.app = new PIXI.Application({
 //  resolution: 1
 })
 
-document.querySelector('#frame').appendChild(app.view)
+document.querySelector('#frame').appendChild(app.view);
+
+const buttonsSpritesheetData = {
+  "frames":
+  {
+    "plus":
+    {
+      "frame": {"x":0,"y":0,"w":8,"h":8},
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {"x":0,"y":0,"w":8,"h":8},
+      "sourceSize": {"w":8,"h":8},
+      "anchor": {"x":0.5,"y":0.5}
+    },
+    "minus":
+    {
+      "frame": {"x":8,"y":0,"w":8,"h":8},
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {"x":0,"y":0,"w":8,"h":8},
+      "sourceSize": {"w":8,"h":8},
+      "anchor": {"x":0.5,"y":0.5}
+    },
+    "up":
+    {
+      "frame": {"x":16,"y":0,"w":8,"h":8},
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {"x":0,"y":0,"w":8,"h":8},
+      "sourceSize": {"w":8,"h":8},
+      "anchor": {"x":0.5,"y":0.5}
+    },
+    "down":
+    {
+      "frame": {"x":24,"y":0,"w":8,"h":8},
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {"x":0,"y":0,"w":8,"h":8},
+      "sourceSize": {"w":8,"h":8},
+      "anchor": {"x":0.5,"y":0.5}
+    },
+    "left":
+    {
+      "frame": {"x":32,"y":0,"w":8,"h":8},
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {"x":0,"y":0,"w":8,"h":8},
+      "sourceSize": {"w":8,"h":8},
+      "anchor": {"x":0.5,"y":0.5}
+    },
+    "right":
+    {
+      "frame": {"x":40,"y":0,"w":8,"h":8},
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {"x":0,"y":0,"w":8,"h":8},
+      "sourceSize": {"w":8,"h":8},
+      "anchor": {"x":0.5,"y":0.5}
+    }
+  },
+  "meta":
+  {
+    "app": "https://www.codeandweb.com/texturepacker",
+    "version": "1.0",
+    "image": "buttons.png",
+    "format": "RGBA8888",
+    "size": {"w":48,"h":8},
+    "scale": "1",
+    "smartupdate": "$TexturePacker:SmartUpdate:5c89c061071a0c52b3956690ead5a36a:521fbf963877ca6e4aebf698fe8142c2:b34c8670b11bb20cb1751a70d3683e22$"
+  }
+}
+
 
 fragment = `
 precision mediump float;
@@ -44,18 +115,52 @@ void main(void)
 
 `
 
-screenSize = 2;
+var screenSize = 2;
 
-filter = new PIXI.Filter(null, fragment, {
+const container = new PIXI.Container();
+container.filterArea = new PIXI.Rectangle(0, 0, 80, 80);
+app.stage.addChild(container);
+const filter = new PIXI.Filter(null, fragment, {
   // NB: these values get immediately overwritten
   screenWidth: screenSize,
   screenHeight: screenSize,
   screenX: -0.5,
   screenY: 0
 });
+container.filters = [filter];
 
-app.stage.filterArea = app.renderer.screen;
-app.stage.filters = [filter];
+// app.stage.filterArea = app.renderer.screen;
+// app.stage.filters = [filter];
+
+
+const baseTexture = new PIXI.BaseTexture(buttonsSpritesheetData.meta.image, null, 1);
+const spritesheet = new PIXI.Spritesheet(baseTexture, buttonsSpritesheetData);
+spritesheet.parse(function (textures) {
+   // finished preparing spritesheet textures
+});
+const controls={};
+const controlNames=["plus","minus","up","down","left","right"]
+for(i=0; i<controlNames.length; i++){
+  const name = controlNames[i];
+  controls[name] = new PIXI.Sprite(spritesheet.textures[name]);
+  app.stage.addChild(controls[name]);
+  controls[name].interactive = true;
+  controls[name].buttonMode = true;
+
+  controls[name]
+    .on('pointerdown', function() { controls[name].isDown = true })
+    .on('pointerup', function() { controls[name].isDown = false })
+    .on('pointerupoutside', function() { controls[name].isDown = false });
+}
+
+const minScreenSize = 70;
+
+centerArrowsAt = function(x, y) {
+  controls.up.position.set(x,y-8);
+  controls.down.position.set(x,y+8);
+  controls.left.position.set(x-8,y);
+  controls.right.position.set(x+8,y);
+}
 
 // Resize function window
 resize = function(){
@@ -66,18 +171,58 @@ resize = function(){
   app.renderer.resize(window.innerWidth, window.innerHeight);
 
   // Scale the renderer to fit 128x128 plus extra on the bottom or right
-  narrowest = Math.min(parent.clientWidth, parent.clientHeight);
-  //app.stage.scale.set(narrowest / (80 + MARGIN_PIXELS * 2));
+  var narrowest = Math.min(parent.clientWidth, parent.clientHeight);
+  var widest = Math.max(parent.clientWidth, parent.clientHeight);
+  app.stage.scale.set(narrowest / minScreenSize);
+  const maxScreenSize = minScreenSize * widest / narrowest;
 
   if (parent.clientWidth < parent.clientHeight) {
-    filter.uniforms.screenWidth = screenSize;
-    filter.uniforms.screenHeight = screenSize * parent.clientHeight/parent.clientWidth;
+    // portrait
+    var screenWidth = screenSize;
+    var screenHeight = screenSize * parent.clientHeight/parent.clientWidth;
+    controls.plus.position.set(minScreenSize - 8, maxScreenSize - 8);
+    controls.minus.position.set(minScreenSize - 20, maxScreenSize - 8);
+    centerArrowsAt(12, maxScreenSize - 12);
   } else {
-    filter.uniforms.screenWidth = screenSize * parent.clientWidth/parent.clientHeight;
-    filter.uniforms.screenHeight = screenSize;
+    // landscape
+    var screenWidth = screenSize * parent.clientWidth/parent.clientHeight;
+    var screenHeight = screenSize;
+    controls.plus.position.set(maxScreenSize - 8, 8);
+    controls.minus.position.set(maxScreenSize - 8, 20);
+    centerArrowsAt(maxScreenSize - 12, minScreenSize - 12);
   }
+  filter.uniforms.screenWidth = screenWidth;
+  filter.uniforms.screenHeight = screenHeight;
+  container.filterArea.width=Math.ceil(parent.clientWidth);
+  container.filterArea.height=Math.ceil(parent.clientHeight);
 }
 // Listen for window resize events
 window.addEventListener('resize', resize);
 
 resize()
+
+const zoomRatio = 1.02;
+const panRatio = 0.01;
+
+app.ticker.add(function(deltaT) {
+  if(controls.plus.isDown) {
+    screenSize/= zoomRatio;
+    resize();
+  }
+  if(controls.minus.isDown) {
+    screenSize*= zoomRatio;
+    resize();
+  }
+  if(controls.up.isDown) {
+    filter.uniforms.screenY-= screenSize*panRatio;
+  }
+  if(controls.down.isDown) {
+    filter.uniforms.screenY+= screenSize*panRatio;
+  }
+  if(controls.left.isDown) {
+    filter.uniforms.screenX-= screenSize*panRatio;
+  }
+  if(controls.right.isDown) {
+    filter.uniforms.screenX+= screenSize*panRatio;
+  }
+});

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+    <meta content="width=device-width" name="viewport" />
+    <title>Mandel2</title>
+  </head>
+  <body>
+    <style>
+canvas {
+  display:block;
+}
+
+#frame {
+  /* Necessary to make sure frame width/height
+  isn't set according to the canvas element */
+  position: absolute;
+  overflow: hidden;
+
+  top: 0%;
+  left: 0%;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background-color: black;
+}
+    </style>
+
+    <div id="frame" />
+
+    <script src="./pixi-v5.2.5.js"></script>
+    <script src="./mandel2.js"></script>
+  </body>
+</html>

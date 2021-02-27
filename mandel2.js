@@ -8,6 +8,9 @@ window.app = new PIXI.Application({
 
 document.querySelector('#frame').appendChild(app.view);
 
+const MAX_ITERATIONS=200;
+const COLOR_CYCLES=10;
+
 const buttonsSpritesheetData = {
   "frames":
   {
@@ -89,6 +92,13 @@ uniform float screenWidth;
 uniform float screenHeight;
 uniform float screenX;
 uniform float screenY;
+
+vec3 hsv2rgb(vec3 c) {
+  vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+  vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+  return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
 void main(void)
 {
   gl_FragColor = vec4(0, 0, 0, 1.0);
@@ -98,16 +108,39 @@ void main(void)
   float zx = 0.0;
   float zy = 0.0;
   float zswap;
-  float color;
+  float scaled;
+  float ax;
+  float ay;
+  //gl_FragColor = vec4(0.5, 0.5, 0.5, 1.0);
 
-  for(int i=0; i <= 100; i++) {
+  for(int i=0; i <= ${MAX_ITERATIONS}; i++) {
     zswap = zx*zx - zy*zy + x;
-    zy = 2.0*zx*zy + y;
+    zy = (zx+zx)*zy + y;
     zx = zswap;
+    ax = abs(zx);
+    ay = abs(zy);
 
-    if (abs(zx)+abs(zy) > 2.0) {
-      color=float(i)/100.0;
-      gl_FragColor = vec4(color, color, color, 1.0);
+    // TODO: having trouble with optimizing away the core of the bulb here..
+    // if (abs(-.2-zx) < 0.1 && ay < .1) {
+    //   gl_FragColor = vec4(0., 0., 0., 1.0);
+    //   return;
+    // }
+
+    if (ax > 2.0 || ay > 2.0) {
+      scaled=float(i)/${MAX_ITERATIONS}.;
+      scaled = 1.-(1.-scaled)*(1.-scaled);
+      gl_FragColor = vec4(
+        hsv2rgb(
+          vec3(
+            mod(
+              scaled,
+              1./${COLOR_CYCLES}.
+            )*${COLOR_CYCLES}.,
+            1.,
+            .75+scaled/4.
+          )
+        ), 1.0
+      );
       return;
     }
   }

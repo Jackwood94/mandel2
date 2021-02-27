@@ -128,7 +128,6 @@ void main(void)
 
     if (ax > 2.0 || ay > 2.0) {
       scaled=float(i)/${MAX_ITERATIONS}.;
-      scaled = 1.-(1.-scaled)*(1.-scaled);
       gl_FragColor = vec4(
         hsv2rgb(
           vec3(
@@ -137,7 +136,7 @@ void main(void)
               1./${COLOR_CYCLES}.
             )*${COLOR_CYCLES}.,
             1.,
-            .75+scaled/4.
+            .5+scaled/4.
           )
         ), 1.0
       );

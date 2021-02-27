@@ -136,7 +136,7 @@ void main(void)
               1./${COLOR_CYCLES}.
             )*${COLOR_CYCLES}.,
             1.,
-            .5+scaled/4.
+            .5+scaled/2.
           )
         ), 1.0
       );

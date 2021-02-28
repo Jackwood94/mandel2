@@ -9,7 +9,7 @@ window.app = new PIXI.Application({
 document.querySelector('#frame').appendChild(app.view);
 
 const MAX_ITERATIONS=200;
-const COLOR_CYCLES=4;
+const COLOR_CYCLES=5;
 
 const buttonsSpritesheetData = {
   "frames":
@@ -133,8 +133,8 @@ void main(void)
               scaled,
               1./${COLOR_CYCLES}.
             )*${COLOR_CYCLES}.,
-            scaled*2., // tops out at 1
-            scaled
+            .2+scaled*1.5, // tops out at 1
+            scaled*1.5
           )
         ), 1.0
       );

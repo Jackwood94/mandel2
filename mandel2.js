@@ -124,7 +124,7 @@ void main(void)
     ax = abs(zx);
     ay = abs(zy);
 
-    if (ax > 2.0 || ay > 2.0) {
+    if (zx*zx + zy*zy > 4.0) {
       scaled=log(float(i))/log(${MAX_ITERATIONS}.);
       gl_FragColor = vec4(
         hsv2rgb(

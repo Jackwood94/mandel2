@@ -9,7 +9,7 @@ window.app = new PIXI.Application({
 document.querySelector('#frame').appendChild(app.view);
 
 const MAX_ITERATIONS=200;
-const COLOR_CYCLES=10;
+const COLOR_CYCLES=4;
 
 const buttonsSpritesheetData = {
   "frames":
@@ -113,6 +113,10 @@ void main(void)
   float ay;
   //gl_FragColor = vec4(0.5, 0.5, 0.5, 1.0);
 
+  if (abs(x+.18) < .4 && abs(y) < .4) {
+    return;
+  }
+
   for(int i=0; i <= ${MAX_ITERATIONS}; i++) {
     zswap = zx*zx - zy*zy + x;
     zy = (zx+zx)*zy + y;
@@ -120,14 +124,8 @@ void main(void)
     ax = abs(zx);
     ay = abs(zy);
 
-    // TODO: having trouble with optimizing away the core of the bulb here..
-    // if (abs(-.2-zx) < 0.1 && ay < .1) {
-    //   gl_FragColor = vec4(0., 0., 0., 1.0);
-    //   return;
-    // }
-
     if (ax > 2.0 || ay > 2.0) {
-      scaled=float(i)/${MAX_ITERATIONS}.;
+      scaled=log(float(i))/log(${MAX_ITERATIONS}.);
       gl_FragColor = vec4(
         hsv2rgb(
           vec3(
@@ -135,8 +133,8 @@ void main(void)
               scaled,
               1./${COLOR_CYCLES}.
             )*${COLOR_CYCLES}.,
-            1.,
-            .5+scaled/2.
+            scaled*2., // tops out at 1
+            scaled
           )
         ), 1.0
       );
